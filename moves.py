@@ -1,3 +1,4 @@
+import sys
 import itertools
 import operator
 import string
@@ -32,17 +33,26 @@ def filter_longest_words(moves):
 
 
 if __name__ == '__main__':
-    move_generator = ScrabbleMoveGenerator(Dictionary('dictionary.csv'))
+    if len(sys.argv) > 1:
+        rack = sys.argv[1]
+    else:
+        rack = input("enter rack : ")
 
+    move_generator = ScrabbleMoveGenerator(Dictionary('dictionary.csv'))
+    default = set(move_generator.generate_moves(rack, None))
+    print("Default words :", *default)
     all_words = set()
     alphabet = string.ascii_lowercase
     for letter in alphabet:
-        moves = move_generator.generate_moves("lwgpyia" + letter, None)
-        best_words = filter_longest_words(moves)
+        moves = move_generator.generate_moves(rack + letter, None)
+        moves = list(set(moves) - default)
+        # best_words = filter_longest_words(moves)
+        best_words = moves
 
         all_words.update(best_words)
         print(f"{letter} : " + ", ".join(best_words))
 
     best_of_all = filter_longest_words(all_words)
     print("BEST OF ALL : ")
-    print(best_of_all)
+    print(*best_of_all)
+    print("Total words amount :", len(all_words))
