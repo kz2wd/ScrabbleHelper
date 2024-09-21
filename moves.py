@@ -2,6 +2,8 @@ import sys
 import itertools
 import operator
 import string
+from argparse import ArgumentParser
+
 from operator import itemgetter
 
 from words import Dictionary
@@ -33,26 +35,29 @@ def filter_longest_words(moves):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        rack = sys.argv[1]
-    else:
-        rack = input("enter rack : ")
+    parser = ArgumentParser()
+    parser.add_argument("-w", "-s", "--show-words", action='store_true', default=False, dest='show_words')
+    parser.add_argument("-b", "--best", action='store_true', default=False, dest='only_best_words')
+    parser.add_argument("rack", action='store', type=str)
+    args = parser.parse_args()
 
     move_generator = ScrabbleMoveGenerator(Dictionary('dictionary.csv'))
-    default = set(move_generator.generate_moves(rack, None))
-    print("Default words :", *default)
+    default = set(move_generator.generate_moves(args.rack, None))
+    if args.show_words:
+        print("Default words :", *default)
     all_words = set()
     alphabet = string.ascii_lowercase
     for letter in alphabet:
-        moves = move_generator.generate_moves(rack + letter, None)
+        moves = move_generator.generate_moves(args.rack + letter, None)
         moves = list(set(moves) - default)
-        # best_words = filter_longest_words(moves)
-        best_words = moves
 
-        all_words.update(best_words)
-        print(f"{letter} : " + ", ".join(best_words))
+        all_words.update(moves)
+        if args.show_words and not args.only_best_words:
+            print(f"{letter} : " + ", ".join(moves))
 
     best_of_all = filter_longest_words(all_words)
-    print("BEST OF ALL : ")
-    print(*best_of_all)
+    print(len(best_of_all[0]))
+    if args.show_words:
+        print("BEST OF ALL : ")
+        print(*best_of_all)
     print("Total words amount :", len(all_words))
