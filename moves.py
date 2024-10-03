@@ -38,19 +38,24 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("-w", "-s", "--show-words", action='store_true', default=False, dest='show_words')
     parser.add_argument("-b", "--best", action='store_true', default=False, dest='only_best_words')
+    parser.add_argument("-o", "--origin", action='store_true', default=False, dest='show_origin')
     parser.add_argument("rack", action='store', type=str)
     args = parser.parse_args()
 
     move_generator = ScrabbleMoveGenerator(Dictionary('dictionary.csv'))
     default = set(move_generator.generate_moves(args.rack, None))
+    best_default = filter_longest_words(list(default))
+    print(f"Best default : {len(best_default[0])}")
     if args.show_words:
         print("Default words :", *default)
     all_words = set()
     alphabet = string.ascii_lowercase
+    words_from_letters = dict()
     for letter in alphabet:
         moves = move_generator.generate_moves(args.rack + letter, None)
         moves = list(set(moves) - default)
-
+        for move in moves:
+            words_from_letters[move] = letter
         all_words.update(moves)
         if args.show_words and not args.only_best_words:
             print(f"{letter} : " + ", ".join(moves))
@@ -60,4 +65,6 @@ if __name__ == '__main__':
     if args.show_words:
         print("BEST OF ALL : ")
         print(*best_of_all)
+    elif args.show_origin:
+        print("Best letters :", *(words_from_letters[best] for best in best_of_all))
     print("Total words amount :", len(all_words))
